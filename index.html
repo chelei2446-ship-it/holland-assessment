@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>兴趣星图 · 霍兰德职业兴趣测评</title>
+  <style>
+    :root {
+      --bg: oklch(98% 0.004 240);
+      --surface: oklch(100% 0 0);
+      --fg: oklch(20% 0.02 240);
+      --muted: oklch(50% 0.018 240);
+      --border: oklch(90% 0.006 240);
+      --accent: oklch(56% 0.12 170);
+      --accent-soft: color-mix(in oklch, var(--accent) 14%, transparent);
+      --fg-soft: color-mix(in oklch, var(--fg) 6%, transparent);
+      --font-display: 'Iowan Old Style', 'Charter', Georgia, serif;
+      --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --font-mono: ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+      --container: 1180px;
+      --gutter: clamp(18px, 4vw, 40px);
+      --radius: 16px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
+    h1, h2, h3, p { margin: 0; }
+    h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; }
+    p { text-wrap: pretty; }
+    .container { max-width: var(--container); margin: 0 auto; padding: 0 var(--gutter); }
+    .topnav { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border); background: color-mix(in oklch, var(--bg) 92%, transparent); backdrop-filter: blur(14px); }
+    .topnav-inner { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .logo { font-family: var(--font-display); font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+    nav { display: flex; align-items: center; gap: 22px; color: var(--muted); font-size: 14px; }
+    nav a:hover { color: var(--fg); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 11px 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--fg); font-weight: 650; cursor: pointer; transition: transform .16s ease, border-color .16s ease, background .16s ease; }
+    .btn:hover { border-color: var(--fg); }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { border-color: var(--accent); background: var(--accent); color: var(--surface); }
+    .btn-primary:hover { background: color-mix(in oklch, var(--accent) 86%, black); border-color: color-mix(in oklch, var(--accent) 86%, black); }
+    .hero { padding: clamp(56px, 10vw, 120px) 0; }
+    .hero-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr); gap: clamp(32px, 6vw, 82px); align-items: center; }
+    .eyebrow { margin-bottom: 16px; color: var(--muted); font: 700 12px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+    h1 { max-width: 12ch; font-size: clamp(46px, 8vw, 92px); line-height: .98; letter-spacing: -0.035em; }
+    .lead { max-width: 58ch; margin-top: 24px; color: var(--muted); font-size: clamp(17px, 2vw, 20px); }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+    .map-card { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: clamp(20px, 3vw, 34px); box-shadow: 0 30px 90px color-mix(in oklch, var(--fg) 10%, transparent); }
+    .map-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+    .meta { color: var(--muted); font: 13px/1.4 var(--font-mono); }
+    .riasec { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .type { min-height: 118px; border: 1px solid var(--border); border-radius: 18px; padding: 16px; background: color-mix(in oklch, var(--surface) 88%, var(--accent-soft)); }
+    .type strong { display: block; font-family: var(--font-display); font-size: 30px; line-height: 1; }
+    .type span { display: block; margin-top: 12px; color: var(--muted); font-size: 13px; }
+    .pulse { margin-top: 18px; height: 10px; border-radius: 999px; background: var(--accent-soft); border: 1px solid color-mix(in oklch, var(--accent) 24%, var(--border)); }
+    .section { padding: clamp(46px, 8vw, 90px) 0; border-top: 1px solid var(--border); }
+    .section h2 { font-size: clamp(30px, 4vw, 48px); line-height: 1.1; letter-spacing: -0.02em; }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 34px; }
+    .card { min-height: 220px; display: flex; flex-direction: column; justify-content: space-between; gap: 24px; padding: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+    .card:hover { border-color: color-mix(in oklch, var(--fg) 28%, var(--border)); }
+    .card h3 { font-size: 24px; line-height: 1.15; }
+    .card p { color: var(--muted); font-size: 15px; }
+    .steps { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 34px; }
+    .step { display: grid; grid-template-columns: 52px 1fr; gap: 16px; padding: 22px; border-top: 1px solid var(--fg); background: color-mix(in oklch, var(--surface) 72%, transparent); }
+    .num { font: 700 14px/1 var(--font-mono); color: var(--muted); }
+    footer { padding: 42px var(--gutter); border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
+    @media (max-width: 920px) {
+      nav { display: none; }
+      .hero-grid, .cards, .steps { grid-template-columns: 1fr; }
+      h1 { max-width: 11ch; }
+      .riasec { grid-template-columns: repeat(2, 1fr); }
+      .topnav .btn { display: none; }
+    }
+    @media (max-width: 430px) {
+      .hero { padding-top: 42px; }
+      .riasec { gap: 9px; }
+      .type { min-height: 104px; padding: 14px; }
+      .actions .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topnav" data-od-id="topnav">
+    <div class="container topnav-inner">
+      <a class="logo" href="index.html">兴趣星图</a>
+      <nav aria-label="主导航">
+        <a href="landing.html">首页引导</a>
+        <a href="intro.html">测评说明</a>
+        <a href="result.html">结果示例</a>
+        <a href="careers.html">职业探索</a>
+      </nav>
+      <a class="btn btn-primary" href="assessment.html">开始测评</a>
+    </div>
+  </header>
+  <main>
+    <section class="hero" data-od-id="launcher-hero">
+      <div class="container hero-grid">
+        <div>
+          <p class="eyebrow">RIASEC · 职业探索</p>
+          <h1>把职业兴趣看成一张可探索的地图。</h1>
+          <p class="lead">面向学生、职场新人和转行人群的霍兰德职业兴趣测评。先轻松完成答题，再用报告、职业方向和行动清单帮助用户继续判断。</p>
+          <div class="actions">
+            <a class="btn btn-primary" href="landing.html">查看完整网页</a>
+            <a class="btn" href="assessment.html">直接进入答题</a>
+          </div>
+        </div>
+        <aside class="map-card" aria-label="六维兴趣概览">
+          <div class="map-head">
+            <div>
+              <p class="eyebrow">六维兴趣星图</p>
+              <h2 style="font-size: clamp(28px, 3vw, 42px);">从倾向到行动建议</h2>
+            </div>
+            <span class="meta">可保存 · 可分享</span>
+          </div>
+          <div class="riasec">
+            <div class="type"><strong>R</strong><span>现实型：动手、工具、明确成果</span></div>
+            <div class="type"><strong>I</strong><span>研究型：分析、推理、探索原理</span></div>
+            <div class="type"><strong>A</strong><span>艺术型：表达、创造、审美判断</span></div>
+            <div class="type"><strong>S</strong><span>社会型：沟通、支持、教育协作</span></div>
+            <div class="type"><strong>E</strong><span>企业型：推动、影响、目标达成</span></div>
+            <div class="type"><strong>C</strong><span>常规型：秩序、规则、细致执行</span></div>
+          </div>
+          <div class="pulse" aria-hidden="true"></div>
+        </aside>
+      </div>
+    </section>
+    <section class="section" data-od-id="screen-map">
+      <div class="container">
+        <p class="eyebrow">页面入口</p>
+        <h2>按真实产品流程拆分，而不是把所有内容堆在一个长页面里。</h2>
+        <div class="cards">
+          <a class="card" href="intro.html">
+            <div>
+              <h3>测评前</h3>
+              <p>说明用途、答题原则和隐私边界，降低用户的考试感。</p>
+            </div>
+            <span class="meta">intro.html</span>
+          </a>
+          <a class="card" href="assessment.html">
+            <div>
+              <h3>答题流程</h3>
+              <p>单题聚焦、进度反馈、上一题修改、休息节点和提交生成。</p>
+            </div>
+            <span class="meta">assessment.html</span>
+          </a>
+          <a class="card" href="report.html">
+            <div>
+              <h3>报告阅读</h3>
+              <p>总览、六维分布、职业环境、专业方向和下一步行动。</p>
+            </div>
+            <span class="meta">report.html</span>
+          </a>
+        </div>
+      </div>
+    </section>
+    <section class="section" data-od-id="responsive-contract">
+      <div class="container">
+        <p class="eyebrow">跨端策略</p>
+        <h2>手机优先完成测评，平板和电脑优先阅读与比较。</h2>
+        <div class="steps">
+          <div class="step"><span class="num">360</span><p>手机端首屏保留标题、进度和答题按钮，选项保持大点击区域。</p></div>
+          <div class="step"><span class="num">768</span><p>iPad 端让题目、结果图和目录形成沉浸式阅读空间。</p></div>
+          <div class="step"><span class="num">1366</span><p>桌面端以并列图表、报告目录和职业卡片提高信息扫描效率。</p></div>
+          <div class="step"><span class="num">1920</span><p>宽屏保持内容宽度克制，避免长行文字拖慢阅读。</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <div class="container">© 2026 兴趣星图 · 测评结果仅用于职业探索参考，不作为唯一决策依据。</div>
+  </footer>
+</body>
+</html>
