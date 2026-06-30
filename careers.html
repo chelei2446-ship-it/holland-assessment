@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>职业推荐 · 兴趣星图</title>
+  <style>
+    :root {
+      --bg: oklch(98% 0.004 240);
+      --surface: oklch(100% 0 0);
+      --fg: oklch(20% 0.02 240);
+      --muted: oklch(50% 0.018 240);
+      --border: oklch(90% 0.006 240);
+      --accent: oklch(56% 0.12 170);
+      --accent-soft: color-mix(in oklch, var(--accent) 14%, transparent);
+      --fg-soft: color-mix(in oklch, var(--fg) 6%, transparent);
+      --font-display: 'Iowan Old Style', 'Charter', Georgia, serif;
+      --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --font-mono: ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+      --container: 1180px;
+      --gutter: clamp(18px, 4vw, 40px);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); line-height: 1.55; }
+    a, button { color: inherit; font: inherit; }
+    a { text-decoration: none; }
+    h1, h2, h3, p { margin: 0; }
+    h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; }
+    .container { max-width: var(--container); margin: 0 auto; padding: 0 var(--gutter); }
+    .topnav { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border); background: color-mix(in oklch, var(--bg) 92%, transparent); backdrop-filter: blur(14px); }
+    .topnav-inner { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .logo { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+    .btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 11px 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); font-weight: 700; cursor: pointer; }
+    .btn-primary { border-color: var(--accent); background: var(--accent); color: var(--surface); }
+    .hero { padding: clamp(42px, 8vw, 90px) 0; }
+    .eyebrow { margin-bottom: 16px; color: var(--muted); font: 700 12px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+    h1 { max-width: 13ch; font-size: clamp(42px, 7vw, 78px); line-height: 1; letter-spacing: -0.03em; }
+    .lead { max-width: 62ch; margin-top: 20px; color: var(--muted); font-size: 18px; }
+    .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+    .filter { min-height: 42px; padding: 9px 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); cursor: pointer; }
+    .filter[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; padding-bottom: clamp(48px, 8vw, 90px); }
+    .card { display: flex; flex-direction: column; min-height: 310px; padding: 24px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); }
+    .card h2 { font-size: 30px; line-height: 1.1; }
+    .card p { margin-top: 12px; color: var(--muted); }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+    .tag { padding: 5px 9px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted); font-size: 12px; }
+    .card-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: auto; padding-top: 22px; }
+    .small { min-height: 38px; padding: 8px 12px; font-size: 14px; }
+    @media (max-width: 1024px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 680px) { .grid { grid-template-columns: 1fr; } .topnav .btn { display: none; } .card-actions .btn { flex: 1; } }
+  </style>
+</head>
+<body>
+  <header class="topnav" data-od-id="topnav">
+    <div class="container topnav-inner">
+      <a class="logo" href="index.html">兴趣星图</a>
+      <a class="btn" href="report.html">返回报告</a>
+    </div>
+  </header>
+  <main>
+    <section class="hero" data-od-id="careers-hero">
+      <div class="container">
+        <p class="eyebrow">职业推荐</p>
+        <h1>先按职业活动探索，而不是被岗位名称限制。</h1>
+        <p class="lead">推荐内容围绕匹配原因、典型工作、需要培养的能力和入门行动展开。你可以把它们当作探索线索继续比较。</p>
+        <div class="filters" id="filters">
+          <button class="filter" data-cat="all" aria-pressed="true">全部方向</button>
+          <button class="filter" data-cat="creative" aria-pressed="false">创意设计</button>
+          <button class="filter" data-cat="education" aria-pressed="false">教育服务</button>
+          <button class="filter" data-cat="research" aria-pressed="false">研究分析</button>
+          <button class="filter" data-cat="business" aria-pressed="false">商业运营</button>
+        </div>
+      </div>
+    </section>
+    <section class="container grid" id="careerGrid" data-od-id="career-list" aria-live="polite"></section>
+  </main>
+  <script src="holland-data.js"></script>
+  <script>
+    const {
+      readResult,
+      labelsFor,
+      recommendedCareers,
+      safeJsonRead,
+      safeJsonWrite
+    } = window.HollandApp;
+
+    const filters = document.getElementById("filters");
+    const careerGrid = document.getElementById("careerGrid");
+    const result = readResult();
+    const careers = recommendedCareers(result);
+    let savedCareers = safeJsonRead("savedCareers") || [];
+    let activeCat = "all";
+
+    function matchLabel(career) {
+      const best = careers[0]?.match || 1;
+      return `${Math.max(62, Math.round((career.match / best) * 96))}% 匹配`;
+    }
+
+    function renderCareers() {
+      const filtered = careers.filter((career) => activeCat === "all" || career.category.includes(activeCat));
+
+      careerGrid.innerHTML = filtered.map((career) => {
+        const saved = savedCareers.includes(career.id);
+        return `
+          <article class="card" data-cat="${career.category}">
+            <h2>${career.title}</h2>
+            <p>${career.intro}</p>
+            <div class="tags">
+              <span class="tag">${matchLabel(career)}</span>
+              ${labelsFor(career.dims).map((tag) => `<span class="tag">${tag}</span>`).join("")}
+            </div>
+            <div class="card-actions">
+              <a class="btn btn-primary small" href="career-detail.html?role=${career.id}">查看详情</a>
+              <button class="btn small save" type="button" data-role="${career.id}" aria-pressed="${saved}">${saved ? "已收藏" : "收藏"}</button>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    filters.addEventListener("click", (event) => {
+      const btn = event.target.closest("button");
+      if (!btn) return;
+      [...filters.children].forEach((item) => item.setAttribute("aria-pressed", item === btn));
+      activeCat = btn.dataset.cat;
+      renderCareers();
+    });
+
+    careerGrid.addEventListener("click", (event) => {
+      const btn = event.target.closest(".save");
+      if (!btn) return;
+      const id = btn.dataset.role;
+      savedCareers = savedCareers.includes(id)
+        ? savedCareers.filter((item) => item !== id)
+        : [...savedCareers, id];
+      safeJsonWrite("savedCareers", savedCareers);
+      renderCareers();
+    });
+
+    renderCareers();
+  </script>
+</body>
+</html>
