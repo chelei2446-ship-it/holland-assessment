@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>兴趣星图 · 好看、好用、好理解的职业兴趣测评</title>
+  <style>
+    :root {
+      --bg: oklch(98% 0.004 240);
+      --surface: oklch(100% 0 0);
+      --fg: oklch(20% 0.02 240);
+      --muted: oklch(50% 0.018 240);
+      --border: oklch(90% 0.006 240);
+      --accent: oklch(56% 0.12 170);
+      --accent-soft: color-mix(in oklch, var(--accent) 14%, transparent);
+      --fg-soft: color-mix(in oklch, var(--fg) 6%, transparent);
+      --font-display: 'Iowan Old Style', 'Charter', Georgia, serif;
+      --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --font-mono: ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+      --container: 1160px;
+      --gutter: clamp(18px, 4vw, 40px);
+      --radius: 16px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    h1, h2, h3, p { margin: 0; }
+    h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; }
+    p { text-wrap: pretty; }
+    .container { max-width: var(--container); margin: 0 auto; padding: 0 var(--gutter); }
+    .topnav { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border); background: color-mix(in oklch, var(--bg) 92%, transparent); backdrop-filter: blur(14px); }
+    .topnav-inner { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .logo { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+    nav { display: flex; gap: 22px; color: var(--muted); font-size: 14px; }
+    nav a:hover { color: var(--fg); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 11px 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--fg); font-weight: 650; cursor: pointer; }
+    .btn-primary { border-color: var(--accent); background: var(--accent); color: var(--surface); }
+    .hero { padding: clamp(54px, 9vw, 112px) 0; }
+    .hero-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, .9fr); gap: clamp(32px, 6vw, 84px); align-items: center; }
+    .eyebrow { margin-bottom: 16px; color: var(--muted); font: 700 12px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+    h1 { max-width: 12ch; font-size: clamp(44px, 7vw, 84px); line-height: .99; letter-spacing: -0.035em; }
+    .lead { max-width: 58ch; margin-top: 24px; color: var(--muted); font-size: clamp(17px, 2vw, 20px); }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+    .visual { position: relative; min-height: 430px; border: 1px solid var(--border); border-radius: 28px; background: var(--surface); padding: 22px; overflow: hidden; box-shadow: 0 28px 90px color-mix(in oklch, var(--fg) 10%, transparent); }
+    .orbit { position: absolute; inset: 40px; border: 1px solid var(--border); border-radius: 50%; }
+    .orbit:nth-child(2) { inset: 86px; }
+    .star { position: relative; z-index: 1; height: 100%; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; align-content: center; }
+    .node { min-height: 126px; padding: 18px; border: 1px solid var(--border); border-radius: 18px; background: color-mix(in oklch, var(--surface) 84%, var(--accent-soft)); }
+    .node strong { display: block; font: 700 30px/1 var(--font-display); }
+    .node span { display: block; margin-top: 10px; color: var(--muted); font-size: 13px; }
+    .section { padding: clamp(48px, 8vw, 92px) 0; border-top: 1px solid var(--border); }
+    .section h2 { max-width: 13ch; font-size: clamp(32px, 4vw, 52px); line-height: 1.08; letter-spacing: -0.02em; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 36px; }
+    .feature { padding: 26px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+    .mark { width: 38px; height: 38px; display: grid; place-items: center; margin-bottom: 18px; border: 1px solid var(--border); border-radius: 12px; color: var(--fg); }
+    .mark svg { width: 18px; height: 18px; }
+    .feature h3 { font-size: 24px; }
+    .feature p { margin-top: 10px; color: var(--muted); font-size: 15px; }
+    .report { display: grid; grid-template-columns: .82fr 1.18fr; gap: 22px; margin-top: 36px; }
+    .panel { padding: 26px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); }
+    .bar { height: 12px; margin-top: 12px; border-radius: 999px; background: var(--fg-soft); overflow: hidden; }
+    .bar span { display: block; height: 100%; width: var(--w); background: var(--fg); border-radius: inherit; }
+    .mini-list { display: grid; gap: 14px; margin-top: 22px; }
+    .mini-list div { padding: 16px; border-top: 1px solid var(--border); }
+    .faq { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 36px; }
+    .faq article { padding: 22px; border-top: 1px solid var(--fg); background: color-mix(in oklch, var(--surface) 70%, transparent); }
+    footer { padding: 42px var(--gutter); border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
+    @media (max-width: 920px) {
+      nav { display: none; }
+      .hero-split, .grid-3, .report, .faq { grid-template-columns: 1fr; }
+      .visual { min-height: 360px; }
+      .topnav .btn { display: none; }
+    }
+    @media (max-width: 430px) {
+      h1 { max-width: 11ch; }
+      .actions .btn { width: 100%; }
+      .star { grid-template-columns: 1fr; }
+      .node { min-height: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topnav" data-od-id="topnav">
+    <div class="container topnav-inner">
+      <a class="logo" href="index.html">兴趣星图</a>
+      <nav aria-label="主导航">
+        <a href="intro.html">测评说明</a>
+        <a href="model.html">霍兰德模型</a>
+        <a href="careers.html">职业方向</a>
+        <a href="report.html">报告示例</a>
+      </nav>
+      <a class="btn btn-primary" href="intro.html">开始测评</a>
+    </div>
+  </header>
+  <main>
+    <section class="hero" data-od-id="landing-hero">
+      <div class="container hero-split">
+        <div>
+          <p class="eyebrow">职业兴趣测评</p>
+          <h1>一次不紧张的职业探索。</h1>
+          <p class="lead">用霍兰德 RIASEC 六维模型，帮助你理解更容易投入的任务、工作环境和下一步探索方向。结果是线索，不是给你贴死标签。</p>
+          <div class="actions">
+            <a class="btn btn-primary" href="intro.html">开始测评</a>
+            <a class="btn" href="model.html">先了解模型</a>
+          </div>
+        </div>
+        <aside class="visual" aria-label="职业兴趣星图预览">
+          <div class="orbit" aria-hidden="true"></div>
+          <div class="orbit" aria-hidden="true"></div>
+          <div class="star">
+            <div class="node"><strong>A</strong><span>表达、创造、审美判断</span></div>
+            <div class="node"><strong>S</strong><span>沟通、支持、教育协作</span></div>
+            <div class="node"><strong>I</strong><span>分析、观察、解决问题</span></div>
+            <div class="node"><strong>E</strong><span>组织、影响、推动目标</span></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+    <section class="section" data-od-id="value-props">
+      <div class="container">
+        <p class="eyebrow">体验重点</p>
+        <h2>不做试卷感，做清晰的探索节奏。</h2>
+        <div class="grid-3">
+          <article class="feature">
+            <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14M12 5v14"/></svg></div>
+            <h3>单题聚焦</h3>
+            <p>每屏只保留当前问题、清晰选项和温和进度，手机端也能单手顺畅完成。</p>
+          </article>
+          <article class="feature">
+            <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="7"/><path d="M12 8v4l3 2"/></svg></div>
+            <h3>报告可读</h3>
+            <p>结果先给结论，再解释为什么，并把兴趣分数翻译成自然语言。</p>
+          </article>
+          <article class="feature">
+            <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7h16M4 12h10M4 17h16"/></svg></div>
+            <h3>行动清单</h3>
+            <p>从职业方向、专业方向到能力建议，帮助用户把结果变成可尝试的下一步。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+    <section class="section" data-od-id="report-preview">
+      <div class="container">
+        <p class="eyebrow">报告预览</p>
+        <h2>结果页不是一个标签，而是一份可继续阅读的解释。</h2>
+        <div class="report">
+          <div class="panel">
+            <h3 style="font-size: 28px;">A 艺术型 + S 社会型</h3>
+            <p class="lead" style="font-size: 16px;">你可能更容易在表达、创造、帮助他人和建立连接的任务中获得投入感。</p>
+            <div class="bar" aria-label="艺术型倾向"><span style="--w: 86%;"></span></div>
+            <div class="bar" aria-label="社会型倾向"><span style="--w: 78%;"></span></div>
+            <div class="bar" aria-label="研究型倾向"><span style="--w: 58%;"></span></div>
+          </div>
+          <div class="panel">
+            <div class="mini-list">
+              <div><strong>适合环境</strong><p>允许表达观点、与人协作、成果能产生真实影响的场景。</p></div>
+              <div><strong>职业方向</strong><p>用户体验研究、教育产品设计、内容策划、公益传播。</p></div>
+              <div><strong>下一步</strong><p>选择一个职业方向，查看典型任务和入门行动建议。</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="section" data-od-id="faq">
+      <div class="container">
+        <p class="eyebrow">参考边界</p>
+        <h2>测评帮助你提出问题，而不是替你做决定。</h2>
+        <div class="faq">
+          <article><h3>结果会变化吗？</h3><p>会。兴趣会受到阶段、经历和近期状态影响，变化并不代表不稳定。</p></article>
+          <article><h3>推荐职业就是唯一选择吗？</h3><p>不是。职业推荐基于兴趣活动匹配，更适合作为进一步了解和试错的线索。</p></article>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="intro.html">阅读说明并开始</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer><div class="container">© 2026 兴趣星图 · 隐私优先，分享默认只展示摘要。</div></footer>
+</body>
+</html>
