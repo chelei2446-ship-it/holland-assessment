@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>职业详情 · 兴趣星图</title>
+  <style>
+    :root {
+      --bg: oklch(98% 0.004 240);
+      --surface: oklch(100% 0 0);
+      --fg: oklch(20% 0.02 240);
+      --muted: oklch(50% 0.018 240);
+      --border: oklch(90% 0.006 240);
+      --accent: oklch(56% 0.12 170);
+      --accent-soft: color-mix(in oklch, var(--accent) 14%, transparent);
+      --fg-soft: color-mix(in oklch, var(--fg) 6%, transparent);
+      --font-display: 'Iowan Old Style', 'Charter', Georgia, serif;
+      --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --font-mono: ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+      --container: 1100px;
+      --gutter: clamp(18px, 4vw, 40px);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); line-height: 1.6; }
+    a { color: inherit; text-decoration: none; }
+    h1, h2, h3, p { margin: 0; }
+    h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; }
+    .container { max-width: var(--container); margin: 0 auto; padding: 0 var(--gutter); }
+    .topnav { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border); background: color-mix(in oklch, var(--bg) 92%, transparent); backdrop-filter: blur(14px); }
+    .topnav-inner { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .logo { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+    .btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 11px 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); font-weight: 700; }
+    .btn-primary { border-color: var(--accent); background: var(--accent); color: var(--surface); }
+    .hero { padding: clamp(42px, 8vw, 88px) 0; border-bottom: 1px solid var(--border); }
+    .eyebrow { margin-bottom: 16px; color: var(--muted); font: 700 12px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+    h1 { max-width: 12ch; font-size: clamp(44px, 7vw, 82px); line-height: .98; letter-spacing: -0.03em; }
+    .lead { max-width: 60ch; margin-top: 20px; color: var(--muted); font-size: 18px; }
+    .layout { display: grid; grid-template-columns: .92fr 1.08fr; gap: 18px; padding: clamp(40px, 7vw, 80px) 0; }
+    .panel { padding: 26px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); }
+    .panel h2 { font-size: 34px; }
+    .panel p, .panel li { color: var(--muted); }
+    ul { margin: 16px 0 0; padding-left: 20px; }
+    li + li { margin-top: 8px; }
+    .stack { display: grid; gap: 18px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+    .tag { padding: 5px 9px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted); font-size: 12px; }
+    @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } .topnav .btn { display: none; } }
+  </style>
+</head>
+<body>
+  <header class="topnav" data-od-id="topnav">
+    <div class="container topnav-inner">
+      <a class="logo" href="index.html">兴趣星图</a>
+      <a class="btn" href="careers.html">返回职业列表</a>
+    </div>
+  </header>
+  <main>
+    <section class="hero" data-od-id="career-detail-hero">
+      <div class="container">
+        <p class="eyebrow">职业详情</p>
+        <h1 id="title">用户体验研究</h1>
+        <p class="lead" id="intro">通过访谈、观察和分析理解人的需求，再把发现转化为产品决策。</p>
+        <div class="tags" id="tags"></div>
+      </div>
+    </section>
+    <section class="container layout" data-od-id="career-detail-content">
+      <aside class="panel">
+        <h2>为什么匹配</h2>
+        <p id="reason">它同时需要理解人、表达发现和进行结构化分析，适合 A/S/I 组合继续探索。</p>
+        <p style="margin-top: 18px;"><a class="btn btn-primary" href="share.html">保存到摘要</a></p>
+      </aside>
+      <div class="stack">
+        <article class="panel"><h2>典型工作内容</h2><ul id="tasks"></ul></article>
+        <article class="panel"><h2>需要培养的能力</h2><ul id="skills"></ul></article>
+        <article class="panel"><h2>相关学习方向</h2><p id="study"></p></article>
+        <article class="panel"><h2>入门行动建议</h2><p id="action"></p></article>
+      </div>
+    </section>
+  </main>
+  <script src="holland-data.js"></script>
+  <script>
+    const {
+      careerCatalog,
+      recommendedCareers,
+      readResult,
+      labelsFor
+    } = window.HollandApp;
+
+    const result = readResult();
+    const roleId = new URLSearchParams(location.search).get("role");
+    const role = careerCatalog.find((item) => item.id === roleId) || recommendedCareers(result)[0];
+    const bestMatch = recommendedCareers(result)[0]?.match || 1;
+    const match = Math.max(62, Math.round((recommendedCareers(result).find((item) => item.id === role.id)?.match || bestMatch) / bestMatch * 96));
+
+    document.title = `${role.title} · 兴趣星图`;
+    document.getElementById("title").textContent = role.title;
+    document.getElementById("intro").textContent = role.intro;
+    document.getElementById("reason").textContent = `${role.reason} 结合你当前的六维分布，这个方向的兴趣匹配度约为 ${match}%。`;
+    document.getElementById("tags").innerHTML = [`${match}% 匹配`, ...labelsFor(role.dims)].map((tag) => `<span class="tag">${tag}</span>`).join("");
+    document.getElementById("tasks").innerHTML = role.tasks.map((item) => `<li>${item}</li>`).join("");
+    document.getElementById("skills").innerHTML = role.skills.map((item) => `<li>${item}</li>`).join("");
+    document.getElementById("study").textContent = role.study;
+    document.getElementById("action").textContent = role.action;
+  </script>
+</body>
+</html>
