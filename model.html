@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>霍兰德模型 · 兴趣星图</title>
+  <style>
+    :root {
+      --bg: oklch(98% 0.004 240);
+      --surface: oklch(100% 0 0);
+      --fg: oklch(20% 0.02 240);
+      --muted: oklch(50% 0.018 240);
+      --border: oklch(90% 0.006 240);
+      --accent: oklch(56% 0.12 170);
+      --accent-soft: color-mix(in oklch, var(--accent) 14%, transparent);
+      --fg-soft: color-mix(in oklch, var(--fg) 6%, transparent);
+      --font-display: 'Iowan Old Style', 'Charter', Georgia, serif;
+      --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --font-mono: ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+      --container: 1140px;
+      --gutter: clamp(18px, 4vw, 40px);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); line-height: 1.6; }
+    a, button { color: inherit; font: inherit; }
+    a { text-decoration: none; }
+    h1, h2, h3, p { margin: 0; }
+    h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; }
+    .container { max-width: var(--container); margin: 0 auto; padding: 0 var(--gutter); }
+    .topnav { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border); background: color-mix(in oklch, var(--bg) 92%, transparent); backdrop-filter: blur(14px); }
+    .topnav-inner { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .logo { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+    .btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 11px 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); font-weight: 700; cursor: pointer; }
+    .btn-primary { border-color: var(--accent); background: var(--accent); color: var(--surface); }
+    .hero { padding: clamp(42px, 8vw, 90px) 0; }
+    .hero-grid { display: grid; grid-template-columns: minmax(0, .9fr) minmax(320px, 1.1fr); gap: clamp(30px, 6vw, 80px); align-items: center; }
+    .eyebrow { margin-bottom: 16px; color: var(--muted); font: 700 12px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+    h1 { font-size: clamp(42px, 7vw, 78px); line-height: 1; letter-spacing: -0.03em; }
+    .lead { max-width: 62ch; margin-top: 20px; color: var(--muted); font-size: 18px; }
+    .hex { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 24px; border: 1px solid var(--border); border-radius: 24px; background: var(--surface); }
+    .type { min-height: 118px; padding: 16px; border: 1px solid var(--border); border-radius: 18px; background: color-mix(in oklch, var(--surface) 82%, var(--accent-soft)); cursor: pointer; text-align: left; }
+    .type[aria-pressed="true"] { border-color: var(--accent); }
+    .type strong { display: block; font: 800 36px/1 var(--font-display); }
+    .type span { color: var(--muted); font-size: 13px; }
+    .section { padding: clamp(48px, 8vw, 90px) 0; border-top: 1px solid var(--border); }
+    .panel { padding: 28px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); }
+    .panel h2 { font-size: clamp(32px, 4vw, 50px); line-height: 1.1; }
+    .panel p { margin-top: 14px; color: var(--muted); }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 30px; }
+    @media (max-width: 900px) { .hero-grid, .grid-2 { grid-template-columns: 1fr; } .topnav .btn { display: none; } }
+    @media (max-width: 430px) { .hex { grid-template-columns: repeat(2, 1fr); padding: 16px; } .type { min-height: 104px; } }
+  </style>
+</head>
+<body>
+  <header class="topnav" data-od-id="topnav">
+    <div class="container topnav-inner">
+      <a class="logo" href="index.html">兴趣星图</a>
+      <a class="btn btn-primary" href="intro.html">开始测评</a>
+    </div>
+  </header>
+  <main>
+    <section class="hero" data-od-id="model-hero">
+      <div class="container hero-grid">
+        <div>
+          <p class="eyebrow">RIASEC 模型</p>
+          <h1>兴趣类型描述的是活动偏好，不等于能力上限。</h1>
+          <p class="lead">霍兰德模型把职业兴趣分为六类。测评关注的是你更愿意投入哪些活动、环境和任务，而不是判断你只能做哪类职业。</p>
+        </div>
+        <div class="hex" id="typeGrid" aria-label="六型兴趣">
+          <button class="type" data-key="R" aria-pressed="false"><strong>R</strong><span>现实型</span></button>
+          <button class="type" data-key="I" aria-pressed="false"><strong>I</strong><span>研究型</span></button>
+          <button class="type" data-key="A" aria-pressed="true"><strong>A</strong><span>艺术型</span></button>
+          <button class="type" data-key="S" aria-pressed="false"><strong>S</strong><span>社会型</span></button>
+          <button class="type" data-key="E" aria-pressed="false"><strong>E</strong><span>企业型</span></button>
+          <button class="type" data-key="C" aria-pressed="false"><strong>C</strong><span>常规型</span></button>
+        </div>
+      </div>
+    </section>
+    <section class="section" data-od-id="type-explain">
+      <div class="container">
+        <article class="panel" id="explain"></article>
+        <div class="grid-2">
+          <article class="panel"><h2>怎么理解组合</h2><p>主导类型说明你最容易被哪类活动吸引，辅助类型帮助解释你喜欢的工作方式。组合比单个字母更接近真实职业选择。</p></article>
+          <article class="panel"><h2>常见误区</h2><p>兴趣结果不代表能力水平，也不能保证某个职业一定适合。它更适合用来筛选值得进一步了解和试做的方向。</p></article>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script>
+    const data = {
+      R: ["现实型", "偏好动手、工具、设备、实践操作和明确成果。典型活动包括搭建、维护、操作和现场解决问题。"],
+      I: ["研究型", "偏好分析、观察、推理、探索原理和解决复杂问题。典型活动包括研究、验证、建模和诊断。"],
+      A: ["艺术型", "偏好表达、创造、审美、想象和非固定形式的工作。典型活动包括创作、设计、策划和内容表达。"],
+      S: ["社会型", "偏好沟通、支持、教育、助人和关系建立。典型活动包括辅导、培训、咨询和协作。"],
+      E: ["企业型", "偏好影响、组织、推动、谈判和目标达成。典型活动包括管理、销售、创业和项目推动。"],
+      C: ["常规型", "偏好秩序、规则、数据、流程和细致执行。典型活动包括整理、审查、运营和流程管理。"]
+    };
+    const grid = document.getElementById("typeGrid");
+    const explain = document.getElementById("explain");
+    function selectType(key) {
+      [...grid.children].forEach((btn) => btn.setAttribute("aria-pressed", btn.dataset.key === key));
+      explain.innerHTML = `<p class="eyebrow">${key} ${data[key][0]}</p><h2>${data[key][0]}关注什么活动？</h2><p>${data[key][1]}</p>`;
+    }
+    grid.addEventListener("click", (event) => {
+      const btn = event.target.closest("button");
+      if (btn) selectType(btn.dataset.key);
+    });
+    selectType("A");
+  </script>
+</body>
+</html>
