@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>测评说明 · 兴趣星图</title>
+  <style>
+    :root {
+      --bg: oklch(98% 0.004 240);
+      --surface: oklch(100% 0 0);
+      --fg: oklch(20% 0.02 240);
+      --muted: oklch(50% 0.018 240);
+      --border: oklch(90% 0.006 240);
+      --accent: oklch(56% 0.12 170);
+      --accent-soft: color-mix(in oklch, var(--accent) 14%, transparent);
+      --fg-soft: color-mix(in oklch, var(--fg) 6%, transparent);
+      --font-display: 'Iowan Old Style', 'Charter', Georgia, serif;
+      --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --font-mono: ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+      --container: 1080px;
+      --gutter: clamp(18px, 4vw, 40px);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); line-height: 1.55; }
+    a { color: inherit; text-decoration: none; }
+    h1, h2, h3, p { margin: 0; }
+    h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; }
+    .container { max-width: var(--container); margin: 0 auto; padding: 0 var(--gutter); }
+    .topnav { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border); background: color-mix(in oklch, var(--bg) 92%, transparent); backdrop-filter: blur(14px); }
+    .topnav-inner { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .logo { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 11px 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--fg); font-weight: 650; cursor: pointer; }
+    .btn-primary { border-color: var(--accent); background: var(--accent); color: var(--surface); }
+    .hero { padding: clamp(48px, 8vw, 98px) 0; }
+    .eyebrow { margin-bottom: 16px; color: var(--muted); font: 700 12px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+    h1 { max-width: 14ch; font-size: clamp(42px, 7vw, 78px); line-height: 1; letter-spacing: -0.03em; }
+    .lead { max-width: 60ch; margin-top: 22px; color: var(--muted); font-size: clamp(17px, 2vw, 20px); }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 38px; }
+    .card { padding: 26px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); }
+    .card h3 { font-size: 25px; }
+    .card p { margin-top: 10px; color: var(--muted); }
+    .notice { margin-top: 20px; padding: 22px; border-top: 1px solid var(--fg); background: color-mix(in oklch, var(--surface) 72%, transparent); color: var(--muted); }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+    footer { padding: 42px var(--gutter); border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
+    @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } .topnav .btn { display: none; } .actions .btn { width: 100%; } }
+  </style>
+</head>
+<body>
+  <header class="topnav" data-od-id="topnav">
+    <div class="container topnav-inner">
+      <a class="logo" href="index.html">兴趣星图</a>
+      <a class="btn" href="landing.html">返回首页</a>
+    </div>
+  </header>
+  <main>
+    <section class="hero" data-od-id="intro">
+      <div class="container">
+        <p class="eyebrow">开始前</p>
+        <h1>按真实兴趣作答，不按“应该怎样”作答。</h1>
+        <p class="lead">这不是考试，也不会给你一个固定命运。它更像一次结构化梳理：你对哪些活动更容易投入，哪些职业环境值得继续了解。</p>
+        <div class="grid">
+          <article class="card"><h3>怎么答</h3><p>看到题目后，选择你真实更感兴趣或更符合自己的选项。不要按他人期待、热门专业或“更有前途”来判断。</p></article>
+          <article class="card"><h3>结果怎么用</h3><p>结果用于职业探索参考，帮助你提出更好的问题，不作为升学、就业或转行的唯一依据。</p></article>
+          <article class="card"><h3>中途离开</h3><p>答题页会保留已完成进度。未完成时离开，会先给你一个温和提示。</p></article>
+          <article class="card"><h3>隐私边界</h3><p>分享默认只展示主导类型和一句摘要，不公开完整答题细节。</p></article>
+        </div>
+        <div class="notice">如果某一题让你犹豫，选“更接近现在的你”的答案即可。兴趣本来就会随着经历和阶段变化。</div>
+        <div class="actions">
+          <a class="btn btn-primary" href="assessment.html">开始答题</a>
+          <a class="btn" href="model.html">先看六型解释</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer><div class="container">测评结果仅供职业探索参考。</div></footer>
+</body>
+</html>
