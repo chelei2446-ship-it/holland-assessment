@@ -1,0 +1,1216 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>分享摘要 · 兴趣星图</title>
+  <style>
+    :root {
+      --bg: oklch(98% 0.004 240);
+      --surface: oklch(100% 0 0);
+      --fg: oklch(20% 0.02 240);
+      --muted: oklch(50% 0.018 240);
+      --border: oklch(90% 0.006 240);
+      --accent: oklch(56% 0.12 170);
+      --accent-soft: color-mix(in oklch, var(--accent) 14%, transparent);
+      --fg-soft: color-mix(in oklch, var(--fg) 6%, transparent);
+      --ok: oklch(61% 0.11 170);
+      --note: oklch(63% 0.11 245);
+      --warm: oklch(72% 0.11 78);
+      --font-display: 'Iowan Old Style', 'Charter', Georgia, serif;
+      --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --font-mono: ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+      --container: 1120px;
+      --gutter: clamp(18px, 4vw, 40px);
+      --radius: 18px;
+      --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html { min-width: 0; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-body);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a, button, input { color: inherit; font: inherit; }
+    a { text-decoration: none; }
+    button { cursor: pointer; }
+    h1, h2, h3, p { margin: 0; }
+    h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; }
+    p { text-wrap: pretty; }
+
+    :where(a, button, input):focus-visible {
+      outline: 3px solid color-mix(in oklch, var(--accent) 64%, white);
+      outline-offset: 3px;
+    }
+
+    .container {
+      width: min(100%, var(--container));
+      margin: 0 auto;
+      padding: 0 var(--gutter);
+    }
+
+    .topnav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in oklch, var(--bg) 92%, transparent);
+      backdrop-filter: blur(14px);
+    }
+
+    .topnav-inner {
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .logo {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    nav a:hover { color: var(--fg); }
+
+    .btn {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 18px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      color: var(--fg);
+      font-weight: 700;
+      transition: transform .16s ease, border-color .16s ease, background .16s ease;
+    }
+
+    .btn:hover { border-color: color-mix(in oklch, var(--fg) 34%, var(--border)); }
+    .btn:active { transform: translateY(1px); }
+
+    .btn:disabled,
+    .btn[aria-busy="true"] {
+      cursor: wait;
+      opacity: .68;
+      transform: none;
+    }
+
+    .btn:disabled:hover,
+    .btn[aria-busy="true"]:hover {
+      border-color: var(--border);
+    }
+
+    .btn.is-confirming {
+      animation: control-confirm .18s var(--ease-standard);
+    }
+
+    .btn-primary {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: var(--surface);
+    }
+
+    .btn-primary:hover {
+      border-color: color-mix(in oklch, var(--accent) 86%, black);
+      background: color-mix(in oklch, var(--accent) 86%, black);
+    }
+
+    .share-shell {
+      padding: clamp(34px, 7vw, 86px) 0 clamp(44px, 8vw, 96px);
+    }
+
+    .share-grid {
+      display: grid;
+      grid-template-columns: minmax(300px, 430px) minmax(0, 1fr);
+      gap: clamp(28px, 6vw, 78px);
+      align-items: start;
+    }
+
+    .poster-wrap {
+      position: sticky;
+      top: 92px;
+    }
+
+    .poster {
+      aspect-ratio: 3 / 4;
+      min-height: 560px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 26px;
+      padding: clamp(24px, 4vw, 36px);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      background:
+        linear-gradient(180deg, color-mix(in oklch, var(--accent) 7%, var(--surface)), var(--surface) 42%),
+        var(--surface);
+      box-shadow: 0 26px 90px color-mix(in oklch, var(--fg) 10%, transparent);
+      overflow: hidden;
+      animation: surface-enter .42s var(--ease-standard) both;
+    }
+
+    .poster.is-refreshing {
+      animation: poster-refresh .18s var(--ease-standard);
+    }
+
+    .poster-top,
+    .poster-bottom {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .eyebrow {
+      margin-bottom: 14px;
+      color: var(--muted);
+      font: 700 12px/1 var(--font-mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: color-mix(in oklch, var(--surface) 82%, var(--fg-soft));
+      color: var(--muted);
+      font: 700 12px/1 var(--font-mono);
+      white-space: nowrap;
+    }
+
+    .code {
+      font: 850 clamp(84px, 17vw, 140px)/.82 var(--font-display);
+      letter-spacing: -0.07em;
+    }
+
+    .poster h1 {
+      max-width: 10ch;
+      margin-top: 12px;
+      font-size: clamp(31px, 6vw, 50px);
+      line-height: 1.02;
+      letter-spacing: -0.025em;
+    }
+
+    .poster p { color: var(--muted); }
+
+    .type-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .type-pill {
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 11px;
+      border: 1px solid color-mix(in oklch, var(--accent) 28%, var(--border));
+      border-radius: 999px;
+      background: var(--accent-soft);
+      font-weight: 750;
+      font-size: 13px;
+    }
+
+    .profile {
+      display: grid;
+      gap: 10px;
+      margin-top: 24px;
+      padding-top: 22px;
+      border-top: 1px solid var(--border);
+    }
+
+    .profile-row {
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .profile-row span {
+      color: var(--muted);
+      font: 700 12px/1 var(--font-mono);
+    }
+
+    .bar {
+      height: 9px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: var(--fg-soft);
+    }
+
+    .bar i {
+      display: block;
+      width: var(--w);
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent);
+      transform-origin: left center;
+      animation: bar-grow .26s var(--ease-standard) both;
+    }
+
+    .suggestion {
+      margin-top: 18px;
+      padding: 15px 16px;
+      border: 1px solid color-mix(in oklch, var(--accent) 28%, var(--border));
+      border-radius: 16px;
+      background: color-mix(in oklch, var(--accent) 9%, var(--surface));
+      color: var(--fg);
+      font-weight: 650;
+    }
+
+    .brand-line {
+      color: var(--muted);
+      font: 700 12px/1 var(--font-mono);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .panel {
+      display: grid;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .panel-head {
+      padding-top: 8px;
+      animation: content-enter .38s var(--ease-standard) .06s both;
+    }
+
+    .panel h2 {
+      max-width: 12ch;
+      font-size: clamp(40px, 6vw, 72px);
+      line-height: .98;
+      letter-spacing: -0.035em;
+    }
+
+    .lead {
+      max-width: 62ch;
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: clamp(16px, 2vw, 19px);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .result-status {
+      display: none;
+      align-items: flex-start;
+      gap: 12px;
+      margin-top: 16px;
+      padding: 14px 16px;
+      border: 1px solid color-mix(in oklch, var(--warm) 42%, var(--border));
+      border-radius: 14px;
+      background: color-mix(in oklch, var(--warm) 11%, var(--surface));
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .result-status.is-visible {
+      display: flex;
+    }
+
+    .result-status strong {
+      display: block;
+      color: var(--fg);
+      line-height: 1.25;
+    }
+
+    .result-status a {
+      flex: 0 0 auto;
+      color: var(--fg);
+      font-weight: 750;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: clamp(20px, 3vw, 26px);
+      animation: content-enter .36s var(--ease-standard) both;
+    }
+
+    .card:nth-of-type(1) { animation-delay: .1s; }
+    .card:nth-of-type(2) { animation-delay: .14s; }
+    .card:nth-of-type(3) { animation-delay: .18s; }
+    .card:nth-of-type(4) { animation-delay: .22s; }
+
+    .card.is-updated {
+      animation: control-confirm .18s var(--ease-standard);
+    }
+
+    .card h3 {
+      font-size: 24px;
+      line-height: 1.15;
+    }
+
+    .card p {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .toggle-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .audience-options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .audience-option {
+      position: relative;
+      min-height: 108px;
+      display: grid;
+      align-content: start;
+      gap: 8px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: color-mix(in oklch, var(--surface) 86%, var(--bg));
+      cursor: pointer;
+      transition: border-color .16s ease, background .16s ease, transform .16s ease;
+    }
+
+    .audience-option:hover {
+      border-color: color-mix(in oklch, var(--fg) 28%, var(--border));
+    }
+
+    .audience-option:active {
+      transform: translateY(1px);
+    }
+
+    .audience-option input {
+      position: absolute;
+      inset: 14px 14px auto auto;
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
+    .audience-option:has(input:checked) {
+      border-color: color-mix(in oklch, var(--accent) 48%, var(--border));
+      background: color-mix(in oklch, var(--accent) 10%, var(--surface));
+    }
+
+    .audience-option:has(input:focus-visible),
+    .toggle:has(input:focus-visible) {
+      outline: 3px solid color-mix(in oklch, var(--accent) 64%, white);
+      outline-offset: 3px;
+    }
+
+    .audience-option strong {
+      display: block;
+      padding-right: 28px;
+      line-height: 1.2;
+    }
+
+    .audience-option span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .toggle {
+      min-height: 58px;
+      display: grid;
+      grid-template-columns: 42px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: color-mix(in oklch, var(--surface) 86%, var(--bg));
+    }
+
+    .toggle input {
+      width: 22px;
+      height: 22px;
+      accent-color: var(--accent);
+      justify-self: center;
+    }
+
+    .toggle strong {
+      display: block;
+      line-height: 1.2;
+    }
+
+    .toggle small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .toggle .state {
+      color: var(--muted);
+      font: 700 12px/1 var(--font-mono);
+    }
+
+    .toggle[data-required="true"] {
+      background: color-mix(in oklch, var(--accent) 8%, var(--surface));
+      border-color: color-mix(in oklch, var(--accent) 26%, var(--border));
+    }
+
+    .preview-copy {
+      margin-top: 18px;
+      padding: 18px;
+      border-top: 1px solid var(--fg);
+      background: color-mix(in oklch, var(--surface) 76%, var(--bg));
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .privacy-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .privacy-item {
+      min-height: 86px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: color-mix(in oklch, var(--surface) 84%, var(--bg));
+    }
+
+    .privacy-item strong {
+      display: block;
+      font-size: 14px;
+    }
+
+    .privacy-item span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .proof-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .proof {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .proof b {
+      display: inline-grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font: 800 13px/1 var(--font-mono);
+    }
+
+    .proof strong { display: block; }
+    .proof span { display: block; margin-top: 4px; color: var(--muted); font-size: 14px; }
+
+    .poster-footline {
+      margin-top: 22px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 30;
+      transform: translate(-50%, 16px);
+      opacity: 0;
+      pointer-events: none;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--fg);
+      color: var(--surface);
+      font-weight: 750;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+
+    .toast.is-visible {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    @keyframes surface-enter {
+      from {
+        opacity: 0;
+        transform: translateY(14px) scale(.985);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes content-enter {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes poster-refresh {
+      0% { transform: scale(.992); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes control-confirm {
+      0% { transform: scale(.992); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes bar-grow {
+      from {
+        opacity: 0;
+        transform: scaleX(.72);
+      }
+      to {
+        opacity: 1;
+        transform: scaleX(1);
+      }
+    }
+
+    .is-hidden { display: none !important; }
+
+    @media (max-width: 1024px) {
+      .share-grid {
+        grid-template-columns: minmax(280px, 390px) minmax(0, 1fr);
+        gap: 34px;
+      }
+
+      .poster {
+        min-height: 520px;
+      }
+    }
+
+    @media (max-width: 880px) {
+      nav { display: none; }
+
+      .share-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .poster-wrap {
+        position: static;
+      }
+
+      .poster {
+        width: min(100%, 430px);
+        margin: 0 auto;
+      }
+
+      .panel h2 {
+        max-width: 13ch;
+      }
+
+      .privacy-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .audience-options {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .topnav .btn { display: none; }
+
+      .share-shell {
+        padding-top: 24px;
+      }
+
+      .poster {
+        min-height: 500px;
+        border-radius: 24px;
+      }
+
+      .poster-top,
+      .poster-bottom {
+        flex-direction: column;
+      }
+
+      .panel h2 {
+        font-size: clamp(36px, 12vw, 46px);
+      }
+
+      .actions .btn {
+        width: 100%;
+      }
+
+      .toggle {
+        grid-template-columns: 36px 1fr;
+      }
+
+      .toggle .state {
+        grid-column: 2;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+
+      .poster,
+      .panel-head,
+      .card,
+      .bar i,
+      .poster.is-refreshing,
+      .card.is-updated,
+      .btn.is-confirming {
+        animation: none !important;
+        transform: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topnav" data-od-id="topnav">
+    <div class="container topnav-inner">
+      <a class="logo" href="index.html">兴趣星图</a>
+      <nav aria-label="主导航">
+        <a href="result.html">结果总览</a>
+        <a href="report.html">详细报告</a>
+        <a href="careers.html">职业探索</a>
+      </nav>
+      <a class="btn" href="result.html">返回结果</a>
+    </div>
+  </header>
+
+  <main class="share-shell" data-od-id="share-workbench">
+    <div class="container share-grid">
+      <section class="poster-wrap" data-od-id="poster-preview" aria-label="分享海报预览">
+        <article class="poster" id="poster">
+          <div>
+            <div class="poster-top">
+              <div>
+                <p class="eyebrow">我的兴趣组合</p>
+                <div class="code" id="code">AS</div>
+              </div>
+              <span class="tag" id="toneTag">给咨询师</span>
+            </div>
+
+            <h1 id="headline">艺术型与社会型倾向更突出。</h1>
+            <div class="type-pills" id="typePills" aria-label="主导兴趣类型"></div>
+
+            <div class="profile" id="profileBlock" aria-label="六维兴趣轮廓"></div>
+            <p class="suggestion is-hidden" id="suggestionBlock">先从能结合表达、沟通与助人的小项目开始验证兴趣。</p>
+          </div>
+
+          <div>
+            <p id="caption">测评结果仅展示摘要，不公开题目答案或完整报告。</p>
+            <div class="poster-bottom poster-footline">
+              <span class="brand-line">兴趣星图 · RIASEC</span>
+              <span class="tag" id="privacyTag">不含答题细节</span>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="panel" data-od-id="share-controls">
+        <div class="panel-head">
+          <p class="eyebrow">分享摘要</p>
+          <h2>让结果可讨论，但不过度暴露。</h2>
+          <p class="lead">你可以控制分享卡里出现哪些信息。默认只公开主导兴趣组合和一句核心解读，适合发给老师、咨询师、家人或朋友一起讨论下一步。</p>
+          <div class="actions" data-od-id="share-primary-actions">
+            <button class="btn btn-primary" id="copyBtn" type="button">复制分享文案</button>
+            <button class="btn" id="nativeShareBtn" type="button">系统分享</button>
+            <button class="btn" id="downloadBtn" type="button">下载分享卡</button>
+            <a class="btn" href="report.html">回到报告</a>
+          </div>
+          <p class="result-status" id="resultStatus" role="note">
+            <span><strong>未找到本机测评结果</strong>当前用默认摘要预览分享样式。完成测评后，这里会自动替换成你的真实结果。</span>
+            <a href="assessment.html">去完成测评</a>
+          </p>
+        </div>
+
+        <section class="card" data-od-id="share-audience" aria-labelledby="audienceTitle">
+          <h3 id="audienceTitle">发给谁看</h3>
+          <p>只调整分享文案的语气，不改变报告数据和公开范围。</p>
+          <div class="audience-options" role="radiogroup" aria-label="分享对象">
+            <label class="audience-option">
+              <input type="radio" name="shareTone" value="mentor" checked />
+              <strong>老师 / 咨询师</strong>
+              <span>更强调讨论依据和下一步探索问题。</span>
+            </label>
+            <label class="audience-option">
+              <input type="radio" name="shareTone" value="family" />
+              <strong>家人 / 朋友</strong>
+              <span>语气更自然，方便开启一次轻松沟通。</span>
+            </label>
+            <label class="audience-option">
+              <input type="radio" name="shareTone" value="self" />
+              <strong>保存给自己</strong>
+              <span>保留复盘口吻，适合放进笔记或档案。</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="card" data-od-id="privacy-settings" aria-labelledby="privacyTitle">
+          <h3 id="privacyTitle">公开内容</h3>
+          <p>这些开关只影响分享摘要，不会修改你的完整报告。</p>
+          <div class="toggle-list">
+            <label class="toggle" data-required="true">
+              <input type="checkbox" checked disabled aria-label="主导兴趣组合始终公开" />
+              <span><strong>主导兴趣组合</strong><small>用于说明结果主题，例如 A 艺术型 + S 社会型。</small></span>
+              <span class="state">必选</span>
+            </label>
+            <label class="toggle">
+              <input type="checkbox" data-toggle="insight" checked />
+              <span><strong>核心解读</strong><small>把类型翻译成用户能理解的投入场景。</small></span>
+              <span class="state">推荐</span>
+            </label>
+            <label class="toggle">
+              <input type="checkbox" data-toggle="profile" checked />
+              <span><strong>六维轮廓</strong><small>展示相对强弱，不显示每道题答案。</small></span>
+              <span class="state">可关</span>
+            </label>
+            <label class="toggle">
+              <input type="checkbox" data-toggle="next" />
+              <span><strong>下一步建议</strong><small>加入一条轻量行动提示，便于沟通。</small></span>
+              <span class="state">可选</span>
+            </label>
+          </div>
+          <p class="preview-copy" id="shareText">我的霍兰德职业兴趣结构更偏向 A 艺术型与 S 社会型，可能更容易在表达、创造、帮助他人和建立连接的任务中获得投入感。</p>
+        </section>
+
+        <section class="card" data-od-id="privacy-boundary" aria-labelledby="boundaryTitle">
+          <h3 id="boundaryTitle">默认隐私边界</h3>
+          <div class="privacy-grid">
+            <div class="privacy-item"><strong>不公开姓名</strong><span>分享卡不要求填写真实身份。</span></div>
+            <div class="privacy-item"><strong>不公开题目</strong><span>不会展示单题选择或答题轨迹。</span></div>
+            <div class="privacy-item"><strong>不下结论</strong><span>文案使用“可能更容易”，避免绝对化。</span></div>
+          </div>
+        </section>
+
+        <section class="card" data-od-id="share-rationale" aria-labelledby="rationaleTitle">
+          <h3 id="rationaleTitle">分享前检查</h3>
+          <div class="proof-list">
+            <div class="proof"><b>01</b><span><strong>先讨论兴趣，不讨论能力高低</strong><span>摘要只说明投入感来源，不评价优劣。</span></span></div>
+            <div class="proof"><b>02</b><span><strong>保留解释空间</strong><span>完整报告仍建议结合经历、课程、项目和咨询反馈一起看。</span></span></div>
+            <div class="proof"><b>03</b><span><strong>轻量回流</strong><span>收件人可以先看摘要，再决定是否了解完整报告。</span></span></div>
+          </div>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">已复制分享文案</div>
+
+  <script>
+    const names = {
+      R: "现实型",
+      I: "研究型",
+      A: "艺术型",
+      S: "社会型",
+      E: "企业型",
+      C: "常规型"
+    };
+
+    const dimensions = ["R", "I", "A", "S", "E", "C"];
+
+    const insights = {
+      R: "动手、工具、明确成果",
+      I: "分析、推理、探索原理",
+      A: "表达、创造、审美判断",
+      S: "沟通、支持、教育协作",
+      E: "推动、影响、目标达成",
+      C: "秩序、规则、细致执行"
+    };
+
+    const fallback = {
+      top: ["A", "S"],
+      scores: { R: 12, I: 17, A: 24, S: 22, E: 16, C: 13 }
+    };
+
+    function readStorage(key) {
+      try {
+        return JSON.parse(localStorage.getItem(key) || "null");
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function writeStorage(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function normalizeResult(value) {
+      const scores = {};
+      let hasValidScore = false;
+
+      dimensions.forEach((dim) => {
+        const score = Number(value?.scores?.[dim]);
+        if (Number.isFinite(score) && score >= 0) {
+          scores[dim] = score;
+          hasValidScore = true;
+        } else {
+          scores[dim] = fallback.scores[dim];
+        }
+      });
+
+      const orderedDims = Object.entries(scores)
+        .sort((a, b) => b[1] - a[1])
+        .map(([dim]) => dim);
+      const savedTop = Array.isArray(value?.top)
+        ? value.top.filter((dim) => dimensions.includes(dim))
+        : [];
+      const topDims = [...new Set([...savedTop, ...orderedDims])].slice(0, 2);
+
+      return {
+        scores,
+        top: topDims.length === 2 ? topDims : fallback.top,
+        hasSavedResult: Boolean(value?.scores && hasValidScore)
+      };
+    }
+
+    const toneCopy = {
+      mentor: {
+        tag: "给咨询师",
+        opener: "想请你帮我一起看这份职业兴趣摘要。",
+        closer: "如果方便，我想进一步讨论哪些课程、项目或职业环境更值得优先尝试。"
+      },
+      family: {
+        tag: "给亲友",
+        opener: "和你分享一份我的职业兴趣小结。",
+        closer: "这不是定论，但可以帮助我们更具体地聊聊我在哪些事情上更容易投入。"
+      },
+      self: {
+        tag: "自我复盘",
+        opener: "我保存了一份当前阶段的职业兴趣摘要。",
+        closer: "之后可以结合课程、实习、项目体验再回来对照。"
+      }
+    };
+
+    const stored = readStorage("interestResult");
+    const normalizedResult = normalizeResult(stored);
+    const result = {
+      top: normalizedResult.top,
+      scores: normalizedResult.scores
+    };
+    const hasSavedResult = normalizedResult.hasSavedResult;
+    const ordered = Object.entries(result.scores).sort((a, b) => b[1] - a[1]);
+    const topDims = result.top || ordered.slice(0, 2).map(([dim]) => dim);
+    const max = Math.max(1, ...Object.values(result.scores));
+
+    const code = document.getElementById("code");
+    const headline = document.getElementById("headline");
+    const toneTag = document.getElementById("toneTag");
+    const typePills = document.getElementById("typePills");
+    const profileBlock = document.getElementById("profileBlock");
+    const suggestionBlock = document.getElementById("suggestionBlock");
+    const caption = document.getElementById("caption");
+    const privacyTag = document.getElementById("privacyTag");
+    const shareText = document.getElementById("shareText");
+    const resultStatus = document.getElementById("resultStatus");
+    const toast = document.getElementById("toast");
+    const copyBtn = document.getElementById("copyBtn");
+    const nativeShareBtn = document.getElementById("nativeShareBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const poster = document.getElementById("poster");
+
+    function topLabel() {
+      return topDims.map((dim) => `${dim} ${names[dim]}`).join("与");
+    }
+
+    function insightSentence() {
+      return `我的霍兰德职业兴趣结构更偏向 ${topLabel()}，可能更容易在${topDims.map((dim) => insights[dim]).join("、")}相关的任务中获得投入感。`;
+    }
+
+    function nextSentence() {
+      return `下一步我会优先观察能结合${topDims.map((dim) => insights[dim].split("、")[0]).join("和")}的课程、项目或职业方向。`;
+    }
+
+    function settings() {
+      const checked = (key, fallbackValue) => document.querySelector(`[data-toggle="${key}"]`)?.checked ?? fallbackValue;
+
+      return {
+        tone: document.querySelector('input[name="shareTone"]:checked')?.value || "mentor",
+        insight: checked("insight", true),
+        profile: checked("profile", true),
+        next: checked("next", false)
+      };
+    }
+
+    function applySavedPreferences() {
+      const saved = readStorage("sharePreferences");
+      if (!saved) return;
+
+      if (saved.tone && toneCopy[saved.tone]) {
+        const toneInput = document.querySelector(`input[name="shareTone"][value="${saved.tone}"]`);
+        if (toneInput) toneInput.checked = true;
+      }
+
+      ["insight", "profile", "next"].forEach((key) => {
+        const input = document.querySelector(`[data-toggle="${key}"]`);
+        if (input && typeof saved[key] === "boolean") {
+          input.checked = saved[key];
+        }
+      });
+    }
+
+    function savePreferences() {
+      writeStorage("sharePreferences", settings());
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("is-visible");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => toast.classList.remove("is-visible"), 1800);
+    }
+
+    function replayClass(element, className, duration = 240) {
+      if (!element) return;
+      element.classList.remove(className);
+      void element.offsetWidth;
+      element.classList.add(className);
+      window.setTimeout(() => element.classList.remove(className), duration);
+    }
+
+    function setButtonBusy(button, isBusy) {
+      if (!button) return;
+      button.disabled = isBusy;
+      if (isBusy) {
+        button.setAttribute("aria-busy", "true");
+      } else {
+        button.removeAttribute("aria-busy");
+      }
+    }
+
+    async function copyToClipboard(text) {
+      let field;
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+
+        field = document.createElement("textarea");
+        field.value = text;
+        field.setAttribute("readonly", "");
+        field.style.position = "fixed";
+        field.style.opacity = "0";
+        document.body.appendChild(field);
+        field.select();
+        return document.execCommand("copy");
+      } catch (error) {
+        return false;
+      } finally {
+        if (field) field.remove();
+      }
+    }
+
+    function buildShareText() {
+      const active = settings();
+      const tone = toneCopy[active.tone];
+      const parts = [tone.opener, `我的霍兰德职业兴趣主导组合是 ${topLabel()}。`];
+
+      if (active.insight) parts.push(insightSentence());
+      if (active.profile) parts.push("这只是六维兴趣的相对轮廓，不包含完整答题细节。");
+      if (active.next) parts.push(nextSentence());
+
+      parts.push(tone.closer);
+      parts.push("测评结果仅用于职业探索参考，不作为唯一决策依据。");
+      return parts.join("");
+    }
+
+    function render() {
+      const active = settings();
+
+      code.textContent = topDims.join("");
+      toneTag.textContent = toneCopy[active.tone].tag;
+      headline.textContent = `${names[topDims[0]]}与${names[topDims[1]]}倾向更突出。`;
+      typePills.innerHTML = topDims.map((dim) => `<span class="type-pill">${dim} ${names[dim]}</span>`).join("");
+      profileBlock.classList.toggle("is-hidden", !active.profile);
+      suggestionBlock.classList.toggle("is-hidden", !active.next);
+      resultStatus.classList.toggle("is-visible", !hasSavedResult);
+      caption.textContent = active.insight ? insightSentence() : "分享卡只展示主导兴趣组合，不公开完整报告或题目答案。";
+      privacyTag.textContent = active.profile ? "相对轮廓" : "极简摘要";
+
+      profileBlock.innerHTML = ordered.map(([dim, score]) => `
+        <div class="profile-row">
+          <span>${dim}</span>
+          <div class="bar" role="img" aria-label="${names[dim]}相对强度 ${Math.round((score / max) * 100)}%"><i style="--w:${Math.round((score / max) * 100)}%;"></i></div>
+        </div>
+      `).join("");
+
+      shareText.textContent = buildShareText();
+    }
+
+    function updateShare(event) {
+      render();
+      savePreferences();
+      replayClass(poster, "is-refreshing", 220);
+      replayClass(event?.target?.closest(".card"), "is-updated", 220);
+    }
+
+    function escapeXml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function downloadPoster() {
+      replayClass(downloadBtn, "is-confirming", 220);
+      setButtonBusy(downloadBtn, true);
+
+      try {
+        const text = buildShareText();
+        const safeText = escapeXml(text.length > 88 ? `${text.slice(0, 88)}…` : text);
+        const typeText = escapeXml(topLabel());
+        const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600">
+  <rect width="1200" height="1600" fill="oklch(98% 0.004 240)"/>
+  <rect x="92" y="92" width="1016" height="1416" rx="64" fill="oklch(100% 0 0)" stroke="oklch(90% 0.006 240)" stroke-width="3"/>
+  <text x="150" y="190" fill="oklch(50% 0.018 240)" font-family="Menlo, monospace" font-size="34" font-weight="700" letter-spacing="5">RIASEC · 兴趣星图</text>
+  <text x="142" y="500" fill="oklch(20% 0.02 240)" font-family="Georgia, serif" font-size="250" font-weight="800" letter-spacing="-18">${escapeXml(topDims.join(""))}</text>
+  <text x="150" y="635" fill="oklch(20% 0.02 240)" font-family="Georgia, serif" font-size="70" font-weight="700">${escapeXml(`${names[topDims[0]]}与${names[topDims[1]]}`)}</text>
+  <text x="150" y="720" fill="oklch(20% 0.02 240)" font-family="Georgia, serif" font-size="70" font-weight="700">倾向更突出</text>
+  <text x="150" y="840" fill="oklch(56% 0.12 170)" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="34" font-weight="700">${typeText}</text>
+  <foreignObject x="150" y="925" width="900" height="310">
+    <div xmlns="http://www.w3.org/1999/xhtml" style="font: 42px/1.55 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color:oklch(50% 0.018 240);">${safeText}</div>
+  </foreignObject>
+  <line x1="150" y1="1338" x2="1050" y2="1338" stroke="oklch(90% 0.006 240)" stroke-width="3"/>
+  <text x="150" y="1415" fill="oklch(50% 0.018 240)" font-family="Menlo, monospace" font-size="30" font-weight="700">不含姓名 · 不含题目答案 · 仅作职业探索参考</text>
+</svg>`;
+        const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `兴趣星图-${topDims.join("")}-分享卡.svg`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+        showToast("已下载分享卡");
+      } catch (error) {
+        showToast("下载失败，请稍后再试");
+      } finally {
+        setButtonBusy(downloadBtn, false);
+      }
+    }
+
+    async function shareNatively() {
+      replayClass(nativeShareBtn, "is-confirming", 220);
+      setButtonBusy(nativeShareBtn, true);
+      const text = buildShareText();
+
+      try {
+        if (!navigator.share) {
+          const copied = await copyToClipboard(text);
+          showToast(copied ? "当前浏览器不支持系统分享，已复制文案" : "系统分享不可用，请手动复制文案");
+          return;
+        }
+
+        await navigator.share({
+          title: "我的兴趣星图摘要",
+          text,
+          url: window.location.href
+        });
+        showToast("已打开系统分享");
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          const copied = await copyToClipboard(text);
+          showToast(copied ? "系统分享不可用，已复制文案" : "系统分享不可用，请手动复制文案");
+        }
+      } finally {
+        setButtonBusy(nativeShareBtn, false);
+      }
+    }
+
+    document.querySelectorAll("[data-toggle], input[name='shareTone']").forEach((input) => {
+      input.addEventListener("change", updateShare);
+    });
+
+    copyBtn.addEventListener("click", async () => {
+      replayClass(copyBtn, "is-confirming", 220);
+      setButtonBusy(copyBtn, true);
+      const copied = await copyToClipboard(buildShareText());
+      setButtonBusy(copyBtn, false);
+
+      if (copied) {
+        copyBtn.textContent = "已复制";
+        showToast("已复制分享文案");
+        window.setTimeout(() => { copyBtn.textContent = "复制分享文案"; }, 1600);
+      } else {
+        showToast("复制失败，请手动选择文案");
+      }
+    });
+
+    nativeShareBtn.addEventListener("click", shareNatively);
+    downloadBtn.addEventListener("click", downloadPoster);
+
+    applySavedPreferences();
+    render();
+    savePreferences();
+  </script>
+</body>
+</html>
